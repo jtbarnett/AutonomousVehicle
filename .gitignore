@@ -1,0 +1,27 @@
+# ignore vscode settings
+.vscode/settings.json
+
+# ignore all datasets
+/__MACOSX
+/data
+data.txt
+
+# ignore all output files
+features
+labels
+model.h5
+
+# ignore dlls
+cudnn_adv_infer64_8.dll
+cudnn_adv_train64_8.dll
+cudnn_cnn_infer64_8.dll
+cudnn_cnn_train64_8.dll
+cudnn_ops_infer64_8.dll
+cudnn_ops_train64_8.dll
+cudnn64_8.dll
+
+# ignore logs
+/logs
+
+# ignore caching
+/__pycache__
