@@ -5,14 +5,16 @@ from tensorflow.core.protobuf import saver_pb2
 import dataset
 import model
 
+# directory where the logs are saved
 LOGDIR = './save'
 
+# start the TensorFlow session
 sess = tf.InteractiveSession()
 
 L2NormConst = 0.001
-
 train_vars = tf.trainable_variables()
 
+# set up the loss function and the training function from TensorFlows library
 loss = tf.reduce_mean(tf.square(tf.subtract(model.angle, model.angle_output))) + tf.add_n([tf.nn.l2_loss(v) for v in train_vars]) * L2NormConst
 train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
 sess.run(tf.global_variables_initializer())
@@ -28,6 +30,7 @@ saver = tf.train.Saver(write_version = saver_pb2.SaverDef.V2)
 logs_path = './logs'
 summary_writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
 
+# initialize the epochs and batch size and also the average loss and lowest loss metrics
 epochs = 50
 batch_size = 100
 avg_loss = 0.0
@@ -37,11 +40,15 @@ lowest = 100.0
 # train the model for 50 epochs
 for epoch in range(epochs):
   for i in range(int(dataset.number_frames/batch_size)):
+    # get the frame and angle from the dataset
     frame, angle = dataset.LoadTrainBatch(batch_size)
+    # train the model according to the current frame and angle
     train_step.run(feed_dict={model.frame: frame, model.angle: angle, model.keep_prob: 0.8})
+    # only record the loss for every 10 values
     if i % 10 == 0:
       frame, angle = dataset.LoadValBatch(batch_size)
       loss_value = loss.eval(feed_dict={model.frame: frame, model.angle: angle, model.keep_prob: 1.0})
+      # update the loweset and average loss values
       if loss_value < lowest:
         lowest = loss_value
       avg_loss += loss_value
@@ -52,6 +59,7 @@ for epoch in range(epochs):
     summary = merged_summary_op.eval(feed_dict={model.frame: frame, model.angle: angle, model.keep_prob: 1.0})
     summary_writer.add_summary(summary, epoch * dataset.num_images/batch_size + i)
 
+    # save the current data in intervals of the batch size
     if i % batch_size == 0:
       if not os.path.eframeists(LOGDIR):
         os.makedirs(LOGDIR)
